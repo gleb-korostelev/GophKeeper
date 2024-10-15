@@ -2,51 +2,35 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/gleb-korostelev/GophKeeper/internal/config"
-	"github.com/gleb-korostelev/GophKeeper/internal/db/dbimpl"
-	"github.com/gleb-korostelev/GophKeeper/internal/service/handler"
-	"github.com/gleb-korostelev/GophKeeper/internal/service/router"
-	"github.com/gleb-korostelev/GophKeeper/internal/storage/repository"
-	"github.com/gleb-korostelev/GophKeeper/internal/workerpool"
-	logger "github.com/gleb-korostelev/GophKeeper/tools"
-	"go.uber.org/zap"
+	"github.com/gleb-korostelev/GophKeeper/cmd/initConnection"
+	"github.com/gleb-korostelev/GophKeeper/config"
+	"github.com/gleb-korostelev/GophKeeper/tools/closer"
+	"github.com/gleb-korostelev/GophKeeper/tools/logger"
 )
 
 func main() {
-	log, err := zap.NewProduction()
-	if err != nil {
-		logger.Infof("Error in logger: %v", err)
-		return
-	}
+	defer func() {
+		closer.Wait()
+		closer.CloseAll()
+	}()
 
-	err = config.ConfigInit()
-	if err != nil {
-		logger.Infof("Error in config: %v", err)
-	}
-	database, err := dbimpl.InitDB()
-	if err != nil {
-		logger.Infof("Error database initialize: %v", err)
-		return
-	}
+	ctx := context.Background()
 
-	store := repository.NewDBStorage(database)
-	defer store.Close()
+	db := initConnection.NewDBConn()
 
-	workerPool := workerpool.NewDBWorkerPool(config.MaxRoutine)
-	defer workerPool.Shutdown()
-	svc := handler.NewAPIService(store, workerPool)
-	r := router.RouterInit(svc, log)
+	port := config.GetConfigInt(config.Port)
 
-	logger.Infof("Server is listening on: %s", config.ServerConfig.ServerAddr)
+	logger.Info(fmt.Sprintf("Started server at :%d. Swagger docs stated at %d", port, port+1))
 
 	srv := &http.Server{
-		Addr:    config.ServerConfig.ServerAddr,
-		Handler: r,
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: initConnection.InitImpl(ctx, db, port),
 	}
 
 	stop := make(chan os.Signal, 1)

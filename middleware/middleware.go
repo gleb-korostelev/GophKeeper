@@ -5,29 +5,34 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
-
-	"go.uber.org/zap"
 )
 
-func LoggingMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
+type ctxKey uint8
 
-			ww := &responseWriter{ResponseWriter: w}
+const (
+	ctxKeyAddress ctxKey = iota
+	ctxKeyRole
+)
 
-			next.ServeHTTP(ww, r)
+type CoreMW struct {
+}
 
-			logger.Info("request",
-				zap.String("method", r.Method),
-				zap.String("uri", r.RequestURI),
-				zap.Int("status", ww.status),
-				zap.Int("response_size", ww.size),
-				zap.Duration("duration", time.Since(start)),
-			)
-		})
+func NewCoreMW() *CoreMW {
+	return &CoreMW{}
+}
+
+func (a *CoreMW) Auth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		a.contextUpdate(next).ServeHTTP(w, r)
 	}
+}
+
+func (a *CoreMW) contextUpdate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func GzipCompressMiddleware(next http.Handler) http.Handler {
@@ -106,16 +111,3 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 	}
 	return w.Writer.Write(b)
 }
-
-// func EnsureUserCookie(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		login, err := utils.GetLoginFromCookie(r)
-// 		if err != nil {
-// 			logger.Infof("Failed to authorize due to error: %v", err)
-// 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 			return
-// 		}
-// 		ctx := context.WithValue(r.Context(), config.UserContextKey, login)
-// 		next.ServeHTTP(w, r.WithContext(ctx))
-// 	})
-// }
