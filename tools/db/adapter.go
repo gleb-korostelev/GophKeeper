@@ -1,55 +1,110 @@
+// Package db provides a database adapter for interacting with PostgreSQL using the pgx library.
+// It supports connection pooling, transactional operations, and database migrations with Goose.
+//
+// This package is designed to simplify database interactions for the GophKeeper application.
+
 package db
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
-	. "github.com/gleb-korostelev/GophKeeper"
+	gophkeeper "github.com/gleb-korostelev/GophKeeper"
 	"github.com/gleb-korostelev/GophKeeper/tools/logger"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 )
 
+// IAdapter defines the interface for the database adapter.
+//
+// Methods:
+// - InTx: Executes a function within a database transaction.
+// - GetConn: Returns the underlying connection pool.
 type IAdapter interface {
-	InTx(ctx context.Context, f func(ctx context.Context, tx *sql.Tx) error) error
-	GetConn(ctx context.Context) *sql.DB
+	InTx(ctx context.Context, f func(ctx context.Context, tx pgx.Tx) error) error
+	GetConn() *pgxpool.Pool
 }
 
+// Adapter implements the IAdapter interface and provides database connectivity
+// and transactional support.
 type Adapter struct {
-	Conn      *sql.DB
-	isolation sql.IsolationLevel
+	pool      *pgxpool.Pool      // Connection pool for the database.
+	isolation sql.IsolationLevel // Isolation level for transactions.
+	Config    *Config            // Configuration for the adapter.
 }
 
-func NewAdapter(conn *sql.DB, isolation sql.IsolationLevel) (IAdapter, error) {
-	ad := &Adapter{Conn: conn, isolation: isolation}
-	err := ad.GooseUp()
+// NewAdapter initializes a new database adapter.
+//
+// Parameters:
+// - ctx: The context for managing connection timeouts.
+// - config: Configuration settings for the adapter.
+// - isolation: The isolation level for database transactions.
+//
+// Returns:
+// - IAdapter: A new instance of the database adapter.
+// - error: An error if the adapter initialization fails.
+func NewAdapter(ctx context.Context, config Config, isolation sql.IsolationLevel) (IAdapter, error) {
+	poolConfig, err := pgxpool.ParseConfig(config.Dsn)
 	if err != nil {
+		return nil, fmt.Errorf("failed to parse dsn: %w", err)
+	}
+
+	poolConfig.MaxConns = int32(config.MaxOpenConns)
+	poolConfig.MaxConnLifetime = config.ConnMaxLifetime * time.Minute
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pgxpool: %w", err)
+	}
+
+	ad := &Adapter{
+		pool:      pool,
+		isolation: isolation,
+		Config:    &config,
+	}
+
+	if err := ad.gooseUp(ctx, pool); err != nil {
+		pool.Close()
 		return nil, err
 	}
 	return ad, nil
 }
 
-func (b *Adapter) GetConn(ctx context.Context) *sql.DB {
-	return b.Conn
+// GetConn returns the underlying connection pool.
+//
+// Returns:
+// - *pgxpool.Pool: The connection pool for the database.
+func (b *Adapter) GetConn() *pgxpool.Pool {
+	return b.pool
 }
 
-func (b *Adapter) InTx(ctx context.Context, f func(ctx context.Context, tx *sql.Tx) error) (err error) {
-	tx, err := b.Conn.BeginTx(ctx, &sql.TxOptions{
-		Isolation: b.isolation,
-	})
+// InTx executes a function within a database transaction.
+//
+// Parameters:
+// - ctx: The context for managing transaction timeouts.
+// - f: The function to execute within the transaction.
+//
+// Returns:
+// - error: An error if the transaction fails.
+func (b *Adapter) InTx(ctx context.Context, f func(ctx context.Context, tx pgx.Tx) error) (err error) {
+	tx, err := b.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return fmt.Errorf("error creating tx: %s", err)
+		return fmt.Errorf("error creating tx: %w", err)
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
-			_ = tx.Rollback()
+			_ = tx.Rollback(ctx)
 			logger.Error(p)
+			err = fmt.Errorf("panic: %v", p)
 		} else if err != nil {
-			_ = tx.Rollback()
+			_ = tx.Rollback(ctx)
 		} else {
-			err = tx.Commit()
+			err = tx.Commit(ctx)
 		}
 	}()
 
@@ -57,25 +112,56 @@ func (b *Adapter) InTx(ctx context.Context, f func(ctx context.Context, tx *sql.
 	return
 }
 
-func (b *Adapter) GooseUp() error {
-	goose.SetBaseFS(EmbedMigrations)
-	if err := goose.Up(b.Conn, "migrations", goose.WithAllowMissing()); err != nil {
+// gooseUp applies database migrations using Goose.
+//
+// Parameters:
+// - ctx: The context for managing timeouts.
+// - pool: The connection pool for the database.
+//
+// Returns:
+// - error: An error if the migration process fails.
+func (b *Adapter) gooseUp(ctx context.Context, pool *pgxpool.Pool) error {
+	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
+	defer sqlDB.Close()
+	goose.SetBaseFS(gophkeeper.EmbedMigrations)
+
+	if err := goose.Up(sqlDB, "migrations", goose.WithAllowMissing()); err != nil {
+		return fmt.Errorf("goose up error: %w", err)
+	}
+	return nil
+}
+
+// gooseCreate creates a new migration file using Goose.
+//
+// Parameters:
+// - ctx: The context for managing timeouts.
+// - pool: The connection pool for the database.
+//
+// Returns:
+// - error: An error if the migration file creation fails.
+func (b *Adapter) gooseCreate(ctx context.Context, pool *pgxpool.Pool) error {
+	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
+	defer sqlDB.Close()
+	goose.SetBaseFS(gophkeeper.EmbedMigrations)
+	if err := goose.Create(sqlDB, "migrations", "", "sql"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (b *Adapter) GooseCreate() error {
-	goose.SetBaseFS(EmbedMigrations)
-	if err := goose.Create(b.Conn, "migrations", "", "sql"); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *Adapter) GooseDown() error {
-	goose.SetBaseFS(EmbedMigrations)
-	if err := goose.Down(b.Conn, "migrations"); err != nil {
+// gooseDown rolls back the last database migration using Goose.
+//
+// Parameters:
+// - ctx: The context for managing timeouts.
+// - pool: The connection pool for the database.
+//
+// Returns:
+// - error: An error if the rollback process fails.
+func (b *Adapter) gooseDown(ctx context.Context, pool *pgxpool.Pool) error {
+	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
+	defer sqlDB.Close()
+	goose.SetBaseFS(gophkeeper.EmbedMigrations)
+	if err := goose.Down(sqlDB, "migrations"); err != nil {
 		return err
 	}
 
