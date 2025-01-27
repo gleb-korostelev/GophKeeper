@@ -1,5 +1,3 @@
-// Package handler provides utilities for handling HTTP requests and generating appropriate responses.
-// It also includes error handling logic to streamline response generation for common errors.
 package handler
 
 import (
@@ -29,33 +27,6 @@ var (
 // handleErrResponse sends an appropriate HTTP response based on the provided error.
 // It maps predefined errors to specific HTTP status codes and response messages,
 // ensuring consistent error handling across the application.
-//
-// Parameters:
-// - rw: The HTTP response writer used to send the response.
-// - err: The error that occurred, which determines the HTTP status code and message.
-//
-// Workflow:
-// - Logs the error using the logger utility.
-// - Matches the error against predefined errors and sends a response with the corresponding HTTP status code.
-// - If the error is not recognized, it defaults to a 500 Internal Server Error.
-//
-// Error Mapping:
-// - errInvalidRequestBody -> 400 Bad Request
-// - errHashingPassword -> 500 Internal Server Error
-// - middleware.ErrTokenInvalid -> 401 Unauthorized
-// - middleware.ErrNotEnoughRights -> 403 Forbidden
-// - errAuthFailed -> 401 Unauthorized
-// - Any other error -> 500 Internal Server Error
-//
-// Example usage in a handler:
-//
-//	func ExampleHandler(rw http.ResponseWriter, r *http.Request) {
-//	    err := someFunction()
-//	    if err != nil {
-//	        handleErrResponse(rw, err)
-//	        return
-//	    }
-//	}
 func handleErrResponse(rw http.ResponseWriter, err error) {
 	defer logger.Info(err)
 

@@ -48,13 +48,6 @@ type Claims struct {
 }
 
 // NewClaims creates a new `Claims` object with a specified duration and role.
-//
-// Parameters:
-// - duration: The validity duration of the token.
-// - role: The role to be assigned to the claims.
-//
-// Returns:
-// - *Claims: The created claims object.
 func NewClaims(duration time.Duration, role Role) *Claims {
 	iat := time.Now()
 	eat := iat.Add(duration)
@@ -74,9 +67,6 @@ func NewClaims(duration time.Duration, role Role) *Claims {
 // Parameters:
 // - token: The JWT token string to be parsed.
 // - publicKey: The Ed25519 public key for signature verification.
-//
-// Returns:
-// - error: An error if token validation or parsing fails.
 func (claims *Claims) Parse(token string, publicKey ed25519.PublicKey) error {
 	t, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		return publicKey, nil
@@ -98,11 +88,6 @@ func (claims *Claims) Parse(token string, publicKey ed25519.PublicKey) error {
 // - key: The Ed25519 private key for signing the token.
 // - sub: The subject (e.g., username) to include in the refresh token.
 // - rTokenExp: The expiration duration for the refresh token.
-//
-// Returns:
-// - string: The signed JWT token.
-// - string: The signed refresh token.
-// - error: Any error encountered during token generation.
 func (claims *Claims) Sign(key ed25519.PrivateKey, sub string, rTokenExp time.Duration) (string, string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 	jwtToken, err := token.SignedString(key)
@@ -125,12 +110,6 @@ func (claims *Claims) Sign(key ed25519.PrivateKey, sub string, rTokenExp time.Du
 }
 
 // ToAbilities converts a list of `Ability` objects into an `Abilities` map.
-//
-// Parameters:
-// - items: A variadic list of `Ability` objects.
-//
-// Returns:
-// - Abilities: A map of ability names to their scopes.
 func ToAbilities(items ...Ability) Abilities {
 	result := make(Abilities)
 	for _, ability := range items {
@@ -173,12 +152,6 @@ func RoleAuthorized(username string) Ability {
 }
 
 // Includes checks whether the claims include the specified abilities.
-//
-// Parameters:
-// - abilities: A list of `Ability` objects to check.
-//
-// Returns:
-// - bool: True if all specified abilities are included, false otherwise.
 func (claims *Claims) Includes(abilities ...Ability) bool {
 	for _, role := range abilities {
 		grantedScopes := set(claims.Abilities[role.Name])
@@ -191,12 +164,6 @@ func (claims *Claims) Includes(abilities ...Ability) bool {
 }
 
 // set converts a slice of values into a map for quick lookups.
-//
-// Parameters:
-// - values: A slice of comparable values.
-//
-// Returns:
-// - map[T]struct{}: A map with the values as keys and empty structs as values.
 func set[T comparable](values []T) map[T]struct{} {
 	res := map[T]struct{}{}
 	if values == nil {

@@ -21,8 +21,8 @@ type ctxKey uint8
 
 // Context keys for storing user-specific information.
 const (
-	CtxKeyAddress ctxKey = iota // The key for storing the user's address (e.g., username or user ID).
-	ctxKeyRoles                 // The key for storing the user's roles or abilities.
+	CtxKeyUserID ctxKey = iota // The key for storing the user's ID.
+	ctxKeyRoles                // The key for storing the user's roles or abilities.
 )
 
 // CoreMW represents the core middleware for handling authentication and authorization.
@@ -36,13 +36,6 @@ type CoreMW struct {
 }
 
 // NewCoreMW creates a new instance of CoreMW.
-//
-// Parameters:
-// - allowFake: A boolean indicating whether fake authentication is enabled.
-// - publicKey: A pointer to the public key used for token verification.
-//
-// Returns:
-// - *CoreMW: An instance of CoreMW.
 func NewCoreMW(allowFake bool, publicKey *ed25519.PublicKey) *CoreMW {
 	return &CoreMW{
 		allowFake: allowFake,
@@ -52,10 +45,10 @@ func NewCoreMW(allowFake bool, publicKey *ed25519.PublicKey) *CoreMW {
 
 // Predefined user roles.
 const (
-	RoleAdmin        = "admin"
-	RoleSuperAdmin   = "superadmin"
-	RoleUnauthorized = "unauthorized user"
-	RoleAuthorized   = "authorized user"
+	RoleAdmin         = "admin"
+	RoleSuperAdmin    = "superadmin"
+	GuestUnauthorized = "unauthorized user"
+	RoleAuthorized    = "authorized user"
 )
 
 // Header constants for request headers.
@@ -70,17 +63,6 @@ var (
 )
 
 // Auth wraps an HTTP handler with authentication middleware.
-//
-// Workflow:
-// 1. If fake authentication is enabled, attempts fake authentication.
-// 2. If no valid fake authentication, validates the token and updates the context.
-// 3. Passes the updated context to the next handler.
-//
-// Parameters:
-// - next: The HTTP handler to be wrapped.
-//
-// Returns:
-// - http.HandlerFunc: The wrapped handler.
 func (a *CoreMW) Auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if a.allowFake {
@@ -96,12 +78,6 @@ func (a *CoreMW) Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // contextUpdate validates the token and updates the request context with user information.
-//
-// Parameters:
-// - next: The next HTTP handler in the middleware chain.
-//
-// Returns:
-// - http.Handler: The wrapped handler.
 func (a *CoreMW) contextUpdate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -127,19 +103,12 @@ func (a *CoreMW) contextUpdate(next http.Handler) http.Handler {
 
 		// Update the context with user roles and address.
 		ctx = context.WithValue(ctx, ctxKeyRoles, c.Role.Abilities)
-		ctx = context.WithValue(ctx, CtxKeyAddress, c.Name)
+		ctx = context.WithValue(ctx, CtxKeyUserID, c.Name)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // FakeAuth simulates authentication for testing or development purposes.
-//
-// Parameters:
-// - r: The incoming HTTP request.
-//
-// Returns:
-// - context.Context: The updated context with fake user information.
-// - bool: Whether fake authentication succeeded.
 func (a *CoreMW) FakeAuth(r *http.Request) (context.Context, bool) {
 	ctx := r.Context()
 
@@ -152,20 +121,12 @@ func (a *CoreMW) FakeAuth(r *http.Request) (context.Context, bool) {
 
 	roles := strings.Split(fakeRoles, ",")
 
-	ctx = context.WithValue(ctx, CtxKeyAddress, fakeAcc)
+	ctx = context.WithValue(ctx, CtxKeyUserID, fakeAcc)
 	ctx = context.WithValue(ctx, ctxKeyRoles, roles)
 	return ctx, true
 }
 
 // parseClaims validates and parses a JWT token using the provided public key.
-//
-// Parameters:
-// - token: The JWT token to validate and parse.
-// - public: The public key for verifying the token signature.
-//
-// Returns:
-// - *auth.Claims: The parsed claims from the token.
-// - error: Any error that occurred during parsing or validation.
 func parseClaims(token string, public *ed25519.PublicKey) (*auth.Claims, error) {
 	claims := auth.Claims{}
 	err := claims.Parse(token, *public)
@@ -176,15 +137,8 @@ func parseClaims(token string, public *ed25519.PublicKey) (*auth.Claims, error) 
 }
 
 // GetIssuer retrieves the issuer (user identifier) from the context.
-//
-// Parameters:
-// - ctx: The context containing the issuer.
-//
-// Returns:
-// - string: The issuer string.
-// - error: ErrTokenInvalid if the issuer is not found or invalid.
 func GetIssuer(ctx context.Context) (string, error) {
-	issuer, ok := ctx.Value(CtxKeyAddress).(string)
+	issuer, ok := ctx.Value(CtxKeyUserID).(string)
 	if !ok || issuer == "" {
 		return "", ErrTokenInvalid
 	}

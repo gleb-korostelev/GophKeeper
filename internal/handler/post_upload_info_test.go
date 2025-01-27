@@ -1,4 +1,4 @@
-package handler_test
+package handler
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gleb-korostelev/GophKeeper/internal/handler"
 	"github.com/gleb-korostelev/GophKeeper/middleware"
 	MockService "github.com/gleb-korostelev/GophKeeper/mocks"
 	"github.com/gleb-korostelev/GophKeeper/models"
@@ -146,7 +145,7 @@ func TestPostUploadInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks()
 
-			h := &handler.Implementation{
+			h := &Implementation{
 				AuthSvc:    mockAuthSvc,
 				ProfileSvc: mockProfileSvc,
 			}
@@ -159,7 +158,7 @@ func TestPostUploadInfo(t *testing.T) {
 			}
 
 			req := httptest.NewRequest("POST", "/api/v1/upload-card-info", bytes.NewBuffer(reqBody))
-			ctx := context.WithValue(req.Context(), middleware.CtxKeyAddress, tt.contextIssuer)
+			ctx := context.WithValue(req.Context(), middleware.CtxKeyUserID, tt.contextIssuer)
 			req = req.WithContext(ctx)
 
 			rec := httptest.NewRecorder()

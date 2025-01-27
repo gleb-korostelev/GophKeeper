@@ -21,24 +21,6 @@ import (
 //   - config.MaxOpenConns: the maximum number of open database connections.
 //   - config.MaxIdleConns: the maximum number of idle connections.
 //   - config.ConnMaxLifetime: the maximum lifetime of a connection.
-//
-// The function creates a new database adapter with the given settings and ensures
-// that the SQL isolation level is set to LevelReadUncommitted.
-//
-// If the database adapter cannot be initialized, the function logs the error and
-// terminates the application.
-//
-// Parameters:
-//   - ctx: a context.Context object used to manage the database connection's lifecycle.
-//
-// Returns:
-//   - db.IAdapter: an initialized database adapter interface, ready for use.
-//
-// Example usage:
-//
-//	ctx := context.Background()
-//	dbAdapter := initConnection.NewDBConn(ctx)
-//	defer dbAdapter.Close()
 func NewDBConn(ctx context.Context) db.IAdapter {
 	dsn := config.GetConfigString(config.DBDSN)
 

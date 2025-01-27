@@ -38,12 +38,6 @@ type Closer interface {
 
 // New creates a new instance of `closer` and optionally starts listening for
 // operating system signals.
-//
-// Parameters:
-// - sig: List of OS signals to listen for. If empty, signal handling is disabled.
-//
-// Returns:
-// - *closer: A new instance of the `closer` manager.
 func New(sig ...os.Signal) *closer {
 	c := &closer{done: make(chan struct{})}
 	if len(sig) > 0 {
@@ -59,9 +53,6 @@ func New(sig ...os.Signal) *closer {
 }
 
 // Add appends resources to the global closer's list for management.
-//
-// Parameters:
-// - conn: A variadic list of resources implementing the `Closer` interface.
 func Add(conn ...Closer) {
 	globalCloser.add(conn...)
 }
@@ -84,9 +75,6 @@ func (c *closer) wait() {
 }
 
 // add appends resources to the closer's internal list.
-//
-// Parameters:
-// - conn: A variadic list of resources implementing the `Closer` interface.
 func (c *closer) add(conn ...Closer) {
 	c.mu.Lock()
 	c.toClose = append(c.toClose, conn...)

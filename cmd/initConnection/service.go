@@ -1,5 +1,3 @@
-// Package initConnection provides functions to initialize core application components,
-// including HTTP handlers, services, and middleware for GophKeeper.
 package initConnection
 
 import (
@@ -24,28 +22,6 @@ import (
 // - Profile and Authentication services.
 // - HTTP API handler with routing and middleware.
 // - CORS middleware for cross-origin requests.
-//
-// The function uses configuration values from the application's settings:
-// - config.IsSwaggerCreated: whether Swagger documentation should be included in the API.
-// - config.JwtKey: the private key for signing JWT tokens (hex-encoded).
-//
-// Parameters:
-// - ctx: a context.Context to manage the lifecycle of services.
-// - adapter: a database adapter implementing the db.IAdapter interface.
-// - port: the port number for the HTTP server.
-//
-// Returns:
-// - http.Handler: the fully initialized HTTP handler, ready for use.
-//
-// Panics:
-// - If the private key for signing JWT tokens is invalid or cannot be decoded.
-//
-// Example usage:
-//
-//	ctx := context.Background()
-//	adapter := initConnection.NewDBConn(ctx)
-//	httpHandler := initConnection.InitImpl(ctx, adapter, 8080)
-//	http.ListenAndServe(":8080", httpHandler)
 func InitImpl(
 	ctx context.Context,
 	adapter db.IAdapter,
@@ -86,18 +62,6 @@ func InitImpl(
 }
 
 // initServices initializes and returns the Profile and Authentication services.
-//
-// Parameters:
-// - db: a database adapter implementing the db.IAdapter interface.
-// - key: a byte slice representing the private key for signing JWT tokens.
-//
-// Returns:
-// - profileSvc: an implementation of the handler.ProfileSvc interface.
-// - authSvc: an implementation of the handler.AuthSvc interface.
-//
-// Example usage:
-//
-//	profileSvc, authSvc := initServices(adapter, key)
 func initServices(db db.IAdapter, key []byte) (
 	profileSvc handler.ProfileSvc,
 	authSvc handler.AuthSvc,

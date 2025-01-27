@@ -29,7 +29,7 @@ const (
 // rolesHumanReadable maps account types to human-readable role names.
 // These role names are defined in the `middleware` package.
 var rolesHumanReadable = map[AccountType]string{
-	AccountUnauthorizedUser: middleware.RoleUnauthorized,
+	AccountUnauthorizedUser: middleware.GuestUnauthorized,
 	AccountAuthorizedUser:   middleware.RoleAuthorized,
 	AccountRoleAdmin:        middleware.RoleAdmin,
 	AccountRoleSuperAdmin:   middleware.RoleSuperAdmin,
@@ -66,24 +66,6 @@ type Profile struct {
 }
 
 // GenerateSecret hashes a plaintext password and assigns it to the account's Secret field.
-//
-// Parameters:
-// - password: The plaintext password to hash.
-//
-// Returns:
-// - error: An error if password hashing fails, otherwise nil.
-//
-// Workflow:
-// 1. Uses bcrypt to hash the provided password with a default cost.
-// 2. Assigns the hashed password to the `Secret` field of the `Account`.
-//
-// Example usage:
-//
-//	account := Account{}
-//	err := account.GenerateSecret("securepassword")
-//	if err != nil {
-//	    log.Fatalf("Failed to generate secret: %v", err)
-//	}
 func (a *Account) GenerateSecret(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

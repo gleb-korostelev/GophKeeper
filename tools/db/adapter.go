@@ -38,15 +38,6 @@ type Adapter struct {
 }
 
 // NewAdapter initializes a new database adapter.
-//
-// Parameters:
-// - ctx: The context for managing connection timeouts.
-// - config: Configuration settings for the adapter.
-// - isolation: The isolation level for database transactions.
-//
-// Returns:
-// - IAdapter: A new instance of the database adapter.
-// - error: An error if the adapter initialization fails.
 func NewAdapter(ctx context.Context, config Config, isolation sql.IsolationLevel) (IAdapter, error) {
 	poolConfig, err := pgxpool.ParseConfig(config.Dsn)
 	if err != nil {
@@ -75,21 +66,11 @@ func NewAdapter(ctx context.Context, config Config, isolation sql.IsolationLevel
 }
 
 // GetConn returns the underlying connection pool.
-//
-// Returns:
-// - *pgxpool.Pool: The connection pool for the database.
 func (b *Adapter) GetConn() *pgxpool.Pool {
 	return b.pool
 }
 
 // InTx executes a function within a database transaction.
-//
-// Parameters:
-// - ctx: The context for managing transaction timeouts.
-// - f: The function to execute within the transaction.
-//
-// Returns:
-// - error: An error if the transaction fails.
 func (b *Adapter) InTx(ctx context.Context, f func(ctx context.Context, tx pgx.Tx) error) (err error) {
 	tx, err := b.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -113,13 +94,6 @@ func (b *Adapter) InTx(ctx context.Context, f func(ctx context.Context, tx pgx.T
 }
 
 // gooseUp applies database migrations using Goose.
-//
-// Parameters:
-// - ctx: The context for managing timeouts.
-// - pool: The connection pool for the database.
-//
-// Returns:
-// - error: An error if the migration process fails.
 func (b *Adapter) gooseUp(ctx context.Context, pool *pgxpool.Pool) error {
 	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
 	defer sqlDB.Close()
@@ -132,13 +106,6 @@ func (b *Adapter) gooseUp(ctx context.Context, pool *pgxpool.Pool) error {
 }
 
 // gooseCreate creates a new migration file using Goose.
-//
-// Parameters:
-// - ctx: The context for managing timeouts.
-// - pool: The connection pool for the database.
-//
-// Returns:
-// - error: An error if the migration file creation fails.
 func (b *Adapter) gooseCreate(ctx context.Context, pool *pgxpool.Pool) error {
 	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
 	defer sqlDB.Close()
@@ -150,13 +117,6 @@ func (b *Adapter) gooseCreate(ctx context.Context, pool *pgxpool.Pool) error {
 }
 
 // gooseDown rolls back the last database migration using Goose.
-//
-// Parameters:
-// - ctx: The context for managing timeouts.
-// - pool: The connection pool for the database.
-//
-// Returns:
-// - error: An error if the rollback process fails.
 func (b *Adapter) gooseDown(ctx context.Context, pool *pgxpool.Pool) error {
 	sqlDB := stdlib.OpenDB(*pool.Config().ConnConfig)
 	defer sqlDB.Close()

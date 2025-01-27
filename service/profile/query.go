@@ -10,15 +10,6 @@ import (
 )
 
 // getAccountByUserName retrieves account information by username.
-//
-// Parameters:
-// - ctx: Context for managing request deadlines and cancellations.
-// - tx: Database transaction interface.
-// - username: The username of the account to retrieve.
-//
-// Returns:
-// - acc: The retrieved account information as a `models.Account`.
-// - err: An error if the query or scan fails.
 func getAccountByUserName(ctx context.Context, tx pgx.Tx, username string) (acc models.Account, err error) {
 	const query = `
 		SELECT id,
@@ -47,14 +38,6 @@ func getAccountByUserName(ctx context.Context, tx pgx.Tx, username string) (acc 
 }
 
 // uploadCardInfo uploads or updates card information for a user.
-//
-// Parameters:
-// - ctx: Context for managing request deadlines and cancellations.
-// - tx: Database transaction interface.
-// - profile: Card information to upload or update.
-//
-// Returns:
-// - err: An error if the operation fails.
 func uploadCardInfo(ctx context.Context, tx pgx.Tx, profile profile.CardInfo) (err error) {
 	const query = `
     INSERT INTO auth.cards (user_id, card_holder, card_number, expiration_date, cvv, metadata, updated_at)
@@ -86,15 +69,6 @@ func uploadCardInfo(ctx context.Context, tx pgx.Tx, profile profile.CardInfo) (e
 }
 
 // getUserCards retrieves all cards associated with a user.
-//
-// Parameters:
-// - ctx: Context for managing request deadlines and cancellations.
-// - tx: Database transaction interface.
-// - username: The username of the user whose cards are being retrieved.
-//
-// Returns:
-// - cards: A slice of `profile.CardInfo` containing card details.
-// - err: An error if the query or scanning fails.
 func getUserCards(ctx context.Context, tx pgx.Tx, username string) ([]profile.CardInfo, error) {
 	var cards []profile.CardInfo
 
@@ -127,26 +101,6 @@ func getUserCards(ctx context.Context, tx pgx.Tx, username string) ([]profile.Ca
 }
 
 // deleteCard removes a specific card associated with a user from the database.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - tx: The database transaction interface for executing the query.
-// - username: The username associated with the card to be deleted.
-// - cardNumber: The card number to be deleted.
-//
-// Returns:
-// - error: An error if the operation fails or if no matching card is found.
-//
-// Workflow:
-//  1. Executes a `DELETE` query to remove the card with the specified `card_number`
-//     and `user_id` (determined from the `username`).
-//  2. Checks the `RowsAffected()` count from the query result to ensure a card was deleted.
-//     - If no rows were affected, returns a "card not found" error.
-//  3. Returns any error encountered during query execution or validation.
-//
-// Error Handling:
-// - Returns a "failed to delete card info" error if the query execution fails.
-// - Returns a "card not found" error if no rows match the specified `username` and `cardNumber`.
 func deleteCard(ctx context.Context, tx pgx.Tx, username, cardNumber string) error {
 	const query = `
         DELETE FROM auth.cards

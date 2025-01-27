@@ -37,31 +37,11 @@ type service struct {
 }
 
 // NewService creates a new instance of the authentication service.
-//
-// Parameters:
-// - db: The database adapter for database operations.
-// - privateKey: The private key for signing JWT tokens.
-//
-// Returns:
-// - *service: The authentication service implementation.
 func NewService(db db.IAdapter, privateKey ed25519.PrivateKey) *service {
 	return &service{db: db, privateKey: privateKey}
 }
 
 // CreateProfile creates a new user profile or retrieves an existing one, returning an OTP challenge.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - profile: The user profile containing the username and password.
-//
-// Returns:
-// - challenge: A combined UUID prefix and OTP challenge for verification.
-// - err: An error if the operation fails.
-//
-// Workflow:
-// 1. Attempts to retrieve an existing account by username.
-// 2. If no account exists, creates a new account with a hashed password.
-// 3. Generates an OTP challenge using the account's secret.
 func (s *service) CreateProfile(ctx context.Context, profile models.Profile) (challenge string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
@@ -93,14 +73,6 @@ func (s *service) CreateProfile(ctx context.Context, profile models.Profile) (ch
 }
 
 // GetChallenge generates an OTP challenge for an existing user profile.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - profile: The user profile containing the username.
-//
-// Returns:
-// - challenge: A combined UUID prefix and OTP challenge for verification.
-// - err: An error if the operation fails.
 func (s *service) GetChallenge(ctx context.Context, profile models.Profile) (challenge string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
@@ -120,16 +92,6 @@ func (s *service) GetChallenge(ctx context.Context, profile models.Profile) (cha
 }
 
 // SignIn authenticates a user by validating their OTP and password, then returns JWT tokens.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - profile: The user profile containing the username and password.
-// - challenge: The OTP challenge to validate.
-//
-// Returns:
-// - token: A short-lived JWT token.
-// - refresh: A long-lived refresh token.
-// - err: An error if authentication fails.
 func (s *service) SignIn(ctx context.Context, profile models.Profile, challenge string) (token, refresh string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
@@ -185,14 +147,6 @@ func (s *service) SignIn(ctx context.Context, profile models.Profile, challenge 
 }
 
 // GetAccountByUserName retrieves an account by username.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - username: The username of the account to retrieve.
-//
-// Returns:
-// - acc: The account details.
-// - err: An error if the operation fails or the account is not found.
 func (s *service) GetAccountByUserName(ctx context.Context, username string) (acc models.Account, err error) {
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
 		acc, err = getAccountByUserName(ctx, tx, username)

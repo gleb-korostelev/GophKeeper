@@ -15,11 +15,6 @@ import (
 )
 
 // Swagger represents a configuration structure for generating Swagger documentation.
-//
-// Fields:
-// - nameAPI: The name of the API for Swagger documentation.
-// - handlers: A slice of `swagger.Handler` objects representing API endpoints.
-// - JSON: The Swagger JSON documentation content.
 type Swagger struct {
 	nameAPI  string
 	handlers []swagger.Handler
@@ -27,35 +22,6 @@ type Swagger struct {
 }
 
 // NewAPI initializes a new HTTP router and optionally generates Swagger documentation.
-//
-// Parameters:
-// - nameAPI: The name of the API, used in Swagger documentation.
-// - appPort: The main application port. Swagger documentation will be served on `appPort+1`.
-// - isSwaggerCreated: A boolean indicating whether Swagger documentation has already been created.
-// - handlers: A slice of `swagger.Handler` objects defining API endpoints.
-//
-// Returns:
-// - *mux.Router: A configured Gorilla Mux router with registered handlers and middleware.
-//
-// Workflow:
-// 1. Sets up middleware using `middleware.PanicMid`.
-// 2. Registers the provided handlers to the router.
-// 3. Generates Swagger documentation if not already created.
-// 4. Serves the Swagger JSON documentation and UI on `appPort+1`.
-//
-// Example usage:
-//
-//	handlers := []swagger.Handler{
-//	    {Path: "/api/v1/example", Method: "GET", HandlerFunc: exampleHandler},
-//	}
-//	router := NewAPI("ExampleAPI", 8080, false, handlers)
-//
-// Swagger Documentation:
-// - The Swagger JSON file is generated and saved to `./internal/router/json/swagger.json`.
-// - The Swagger UI is accessible at `/docs`.
-//
-// Middleware:
-// - Adds `middleware.PanicMid` to handle panics and unexpected errors gracefully.
 func NewAPI(nameAPI string, appPort int, isSwaggerCreated bool, handlers []swagger.Handler) *mux.Router {
 	// Return nil if no handlers are provided.
 	if len(handlers) == 0 {

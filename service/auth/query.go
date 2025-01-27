@@ -8,20 +8,6 @@ import (
 )
 
 // getAccountByUserName retrieves an account record from the database by username.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - tx: The database transaction interface.
-// - username: The username of the account to retrieve.
-//
-// Returns:
-// - acc: The `models.Account` struct populated with account details.
-// - err: An error if the query or scanning fails.
-//
-// Workflow:
-// 1. Executes a query to fetch account details based on the provided username.
-// 2. Scans the result into a `models.Account` struct.
-// 3. Returns the account and any error encountered.
 func getAccountByUserName(ctx context.Context, tx pgx.Tx, username string) (acc models.Account, err error) {
 	const query = `
 		SELECT id,

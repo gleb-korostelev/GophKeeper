@@ -1,4 +1,4 @@
-package handler_test
+package handler
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gleb-korostelev/GophKeeper/internal/handler"
 	MockService "github.com/gleb-korostelev/GophKeeper/mocks"
 	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gojuno/minimock/v3"
@@ -101,7 +100,7 @@ func TestPostSignIn(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks()
 
-			h := &handler.Implementation{
+			h := &Implementation{
 				AuthSvc: mockAuthSvc,
 			}
 

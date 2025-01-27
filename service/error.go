@@ -2,7 +2,6 @@
 //
 // These errors are used to standardize the error handling for account and authorization-related
 // operations, ensuring consistent behavior and messaging throughout the application.
-
 package service
 
 import "errors"

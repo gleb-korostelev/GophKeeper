@@ -71,15 +71,6 @@ type Implementation struct {
 // Parameters:
 // - profileSvc: The service for managing user profile operations.
 // - authSvc: The service for managing authentication operations.
-//
-// Returns:
-// - A concrete implementation of the API interface.
-//
-// Example usage:
-//
-//	profileService := NewProfileService()
-//	authService := NewAuthService()
-//	api := handler.NewImplementation(profileService, authService)
 func NewImplementation(profileSvc ProfileSvc, authSvc AuthSvc) API {
 	return &Implementation{
 		ProfileSvc: profileSvc,

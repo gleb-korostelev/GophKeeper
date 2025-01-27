@@ -19,29 +19,11 @@ type service struct {
 }
 
 // NewService creates a new instance of the profile service.
-//
-// Parameters:
-// - db: The database adapter for database operations.
-//
-// Returns:
-// - *service: The profile service implementation.
 func NewService(db db.IAdapter) *service {
 	return &service{db: db}
 }
 
 // UploadInfo uploads or updates a user's card information in the database.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - profile: The `profile.CardInfo` containing the card details to upload or update.
-//
-// Returns:
-// - err: An error if the operation fails.
-//
-// Workflow:
-// 1. Executes a database transaction.
-// 2. Calls `uploadCardInfo` to insert or update the card information.
-// 3. Returns any error encountered during the process.
 func (s *service) UploadInfo(ctx context.Context, profile profile.CardInfo) (err error) {
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
 		err = uploadCardInfo(ctx, tx, profile)
@@ -54,19 +36,6 @@ func (s *service) UploadInfo(ctx context.Context, profile profile.CardInfo) (err
 }
 
 // GetUserCards retrieves all card information associated with a username.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - username: The username for which card information is retrieved.
-//
-// Returns:
-// - profile: A slice of `profile.CardInfo` containing the user's card details.
-// - err: An error if the operation fails.
-//
-// Workflow:
-// 1. Executes a database transaction.
-// 2. Calls `getUserCards` to retrieve card details from the database.
-// 3. Returns the card details and any error encountered.
 func (s *service) GetUserCards(ctx context.Context, username string) (profile []profile.CardInfo, err error) {
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
 		profile, err = getUserCards(ctx, tx, username)
@@ -79,19 +48,6 @@ func (s *service) GetUserCards(ctx context.Context, username string) (profile []
 }
 
 // DeleteCard deletes a specific card associated with a username.
-//
-// Parameters:
-// - ctx: The context for managing request deadlines and cancellations.
-// - username: The username associated with the card.
-// - cardNumber: The card number to delete.
-//
-// Returns:
-// - err: An error if the deletion fails or the card does not exist.
-//
-// Workflow:
-// 1. Executes a database transaction.
-// 2. Calls `deleteCard` to remove the card information from the database.
-// 3. Returns any error encountered during the process.
 func (s *service) DeleteCard(ctx context.Context, username, cardNumber string) (err error) {
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
 		err = deleteCard(ctx, tx, username, cardNumber)

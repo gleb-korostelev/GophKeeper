@@ -7,6 +7,7 @@ import (
 	"github.com/gleb-korostelev/GophKeeper/internal/handler"
 	"github.com/gleb-korostelev/GophKeeper/internal/handler/response"
 	"github.com/gleb-korostelev/GophKeeper/middleware"
+	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gleb-korostelev/GophKeeper/tools/swagger"
 	"github.com/gorilla/mux"
 )
@@ -21,19 +22,6 @@ const AppName = "gophkeeper"
 // - appPort: The main application port for the router.
 // - authKey: The Ed25519 private key for authentication purposes.
 // - isSwaggerCreated: A boolean indicating whether Swagger documentation has already been generated.
-//
-// Returns:
-// - *mux.Router: A configured Gorilla Mux router with registered handlers, middleware, and Swagger support.
-//
-// Workflow:
-// 1. Extracts the public key from the provided `authKey`.
-// 2. Initializes the core middleware with the public key.
-// 3. Registers handlers for all API endpoints with Swagger metadata.
-// 4. Returns a new router initialized via `NewAPI`.
-//
-// Example usage:
-//
-//	router := CreateRouter(apiImplementation, 8080, authKey, false)
 //
 // Middleware:
 // - The `mw.Auth` middleware is applied to endpoints requiring authentication.
@@ -74,24 +62,24 @@ func CreateRouter(impl handler.API, appPort int, authKey ed25519.PrivateKey, isS
 			Path:         "/api/v1/challenge",
 			Method:       http.MethodPost,
 			Description:  "Get challenge for wallet",
-			ResponseBody: response.Response[handler.PostChallengeResp]{},
-			RequestBody:  handler.PostChallengeReq{},
+			ResponseBody: response.Response[models.PostChallengeResp]{},
+			RequestBody:  models.PostChallengeReq{},
 		},
 		{
 			HandlerFunc:  http.HandlerFunc(impl.PostCreateProfile),
 			Path:         "/api/v1/register",
 			Method:       http.MethodPost,
 			Description:  "Register system account",
-			ResponseBody: response.Response[handler.PostProfileResp]{},
-			RequestBody:  handler.PostCreateProfileReq{},
+			ResponseBody: response.Response[models.PostProfileResp]{},
+			RequestBody:  models.PostCreateProfileReq{},
 		},
 		{
 			HandlerFunc:  http.HandlerFunc(impl.PostSignIn),
 			Path:         "/api/v1/login",
 			Method:       http.MethodPost,
 			Description:  "Login to accounts system",
-			ResponseBody: response.Response[handler.PostSignInResp]{},
-			RequestBody:  handler.PostSignInReq{},
+			ResponseBody: response.Response[models.PostSignInResp]{},
+			RequestBody:  models.PostSignInReq{},
 		},
 		{
 			HandlerFunc:  mw.Auth(impl.PostUploadInfo),
@@ -99,7 +87,7 @@ func CreateRouter(impl handler.API, appPort int, authKey ed25519.PrivateKey, isS
 			Method:       http.MethodPost,
 			Description:  "Uploads or edits new card info",
 			ResponseBody: response.Response[struct{}]{},
-			RequestBody:  handler.PostUploadInfoReq{},
+			RequestBody:  models.PostUploadInfoReq{},
 			Opts: []swagger.Option{
 				swagger.HeaderOpt{
 					Name:        middleware.HeaderAuth,
@@ -114,7 +102,7 @@ func CreateRouter(impl handler.API, appPort int, authKey ed25519.PrivateKey, isS
 			Path:         "/api/v1/cards",
 			Method:       http.MethodGet,
 			Description:  "Get card details",
-			ResponseBody: response.Response[handler.GetUserCardsResp]{},
+			ResponseBody: response.Response[models.GetUserCardsResp]{},
 			Opts: []swagger.Option{
 				swagger.HeaderOpt{
 					Name:        middleware.HeaderAuth,
@@ -130,7 +118,7 @@ func CreateRouter(impl handler.API, appPort int, authKey ed25519.PrivateKey, isS
 			Method:       http.MethodDelete,
 			Description:  "Delete specific card",
 			ResponseBody: response.Response[struct{}]{},
-			RequestBody:  handler.DeleteCardInfoReq{},
+			RequestBody:  models.DeleteCardInfoReq{},
 			Opts: []swagger.Option{
 				swagger.HeaderOpt{
 					Name:        middleware.HeaderAuth,

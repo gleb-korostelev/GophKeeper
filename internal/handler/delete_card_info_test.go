@@ -1,4 +1,4 @@
-package handler_test
+package handler
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gleb-korostelev/GophKeeper/internal/handler"
 	"github.com/gleb-korostelev/GophKeeper/middleware"
 	MockService "github.com/gleb-korostelev/GophKeeper/mocks"
 	"github.com/gleb-korostelev/GophKeeper/models"
@@ -153,7 +152,7 @@ func TestDeleteCardInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks()
 
-			h := &handler.Implementation{
+			h := &Implementation{
 				AuthSvc:    mockAuthSvc,
 				ProfileSvc: mockProfileSvc,
 			}
@@ -161,7 +160,7 @@ func TestDeleteCardInfo(t *testing.T) {
 			reqBody, _ := json.Marshal(tt.requestBody)
 			req := httptest.NewRequest("DELETE", "/api/v1/cards", bytes.NewBuffer(reqBody))
 
-			ctx := context.WithValue(req.Context(), middleware.CtxKeyAddress, tt.contextIssuer)
+			ctx := context.WithValue(req.Context(), middleware.CtxKeyUserID, tt.contextIssuer)
 			req = req.WithContext(ctx)
 
 			rec := httptest.NewRecorder()

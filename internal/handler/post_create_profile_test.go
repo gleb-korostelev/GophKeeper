@@ -1,4 +1,4 @@
-package handler_test
+package handler
 
 import (
 	"bytes"
@@ -8,14 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gleb-korostelev/GophKeeper/internal/handler"
 	MockService "github.com/gleb-korostelev/GophKeeper/mocks"
 	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostChallenge(t *testing.T) {
+func TestPostCreateProfile(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	mockAuthSvc := MockService.NewAuthSvcMock(mc)
@@ -28,20 +27,21 @@ func TestPostChallenge(t *testing.T) {
 		expectedBody   map[string]interface{}
 	}{
 		{
-			name: "Successful challenge generation",
+			name: "Successful profile creation",
 			setupMocks: func() {
-				mockAuthSvc.GetChallengeMock.Expect(
+				mockAuthSvc.CreateProfileMock.Expect(
 					minimock.AnyContext,
-					models.Profile{Username: "test_user", Password: ""},
-				).Return("random_challenge", nil)
+					models.Profile{Username: "test_user", Password: "secure_password"},
+				).Return("challenge_token", nil)
 			},
 			requestBody: map[string]string{
 				"username": "test_user",
+				"password": "secure_password",
 			},
 			expectedStatus: http.StatusOK,
 			expectedBody: map[string]interface{}{
 				"data": map[string]interface{}{
-					"challenge": "random_challenge",
+					"challenge": "challenge_token",
 				},
 				"message": "Success",
 				"success": true,
@@ -58,20 +58,21 @@ func TestPostChallenge(t *testing.T) {
 			},
 		},
 		{
-			name: "Error generating challenge",
+			name: "Error creating profile",
 			setupMocks: func() {
-				mockAuthSvc.GetChallengeMock.Expect(
+				mockAuthSvc.CreateProfileMock.Expect(
 					minimock.AnyContext,
-					models.Profile{Username: "test_user", Password: ""},
-				).Return("", errors.New("challenge generation error"))
+					models.Profile{Username: "test_user", Password: "secure_password"},
+				).Return("", errors.New("profile creation error"))
 			},
 			requestBody: map[string]string{
 				"username": "test_user",
+				"password": "secure_password",
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody: map[string]interface{}{
 				"success": false,
-				"message": "challenge generation error",
+				"message": "profile creation error",
 			},
 		},
 	}
@@ -80,7 +81,7 @@ func TestPostChallenge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks()
 
-			h := &handler.Implementation{
+			h := &Implementation{
 				AuthSvc: mockAuthSvc,
 			}
 
@@ -91,10 +92,10 @@ func TestPostChallenge(t *testing.T) {
 				reqBody = []byte(tt.requestBody.(string))
 			}
 
-			req := httptest.NewRequest("POST", "/api/v1/challenge", bytes.NewBuffer(reqBody))
+			req := httptest.NewRequest("POST", "/api/v1/register", bytes.NewBuffer(reqBody))
 			rec := httptest.NewRecorder()
 
-			h.PostChallenge(rec, req)
+			h.PostCreateProfile(rec, req)
 
 			assert.Equal(t, tt.expectedStatus, rec.Code)
 
