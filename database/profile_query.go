@@ -1,44 +1,15 @@
-package profile
+package database
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gleb-korostelev/GophKeeper/models/profile"
 	"github.com/jackc/pgx/v5"
 )
 
-// getAccountByUserName retrieves account information by username.
-func getAccountByUserName(ctx context.Context, tx pgx.Tx, username string) (acc models.Account, err error) {
-	const query = `
-		SELECT id,
-			   username,
-			   secret,
-			   account_type,
-			   created_at,
-			   role_changed_at,
-			   updated_at
-		FROM auth.users
-		WHERE username = $1;
-	`
-
-	var user string
-	err = tx.QueryRow(ctx, query, username).Scan(
-		&acc.ID,
-		&user,
-		&acc.Secret,
-		&acc.AccountType,
-		&acc.CreatedAt,
-		&acc.RoleChangedAt,
-		&acc.UpdatedAt,
-	)
-	acc.Username = user
-	return
-}
-
-// uploadCardInfo uploads or updates card information for a user.
-func uploadCardInfo(ctx context.Context, tx pgx.Tx, profile profile.CardInfo) (err error) {
+// UploadCardInfo uploads or updates card information for a user.
+func UploadCardInfo(ctx context.Context, tx pgx.Tx, profile profile.CardInfo) (err error) {
 	const query = `
     INSERT INTO auth.cards (user_id, card_holder, card_number, expiration_date, cvv, metadata, updated_at)
     SELECT id, $2, $3, $4, $5, $6, now()
@@ -68,8 +39,8 @@ func uploadCardInfo(ctx context.Context, tx pgx.Tx, profile profile.CardInfo) (e
 	return
 }
 
-// getUserCards retrieves all cards associated with a user.
-func getUserCards(ctx context.Context, tx pgx.Tx, username string) ([]profile.CardInfo, error) {
+// GetUserCards retrieves all cards associated with a user.
+func GetUserCards(ctx context.Context, tx pgx.Tx, username string) ([]profile.CardInfo, error) {
 	var cards []profile.CardInfo
 
 	const query = `
@@ -101,7 +72,7 @@ func getUserCards(ctx context.Context, tx pgx.Tx, username string) ([]profile.Ca
 }
 
 // deleteCard removes a specific card associated with a user from the database.
-func deleteCard(ctx context.Context, tx pgx.Tx, username, cardNumber string) error {
+func DeleteCard(ctx context.Context, tx pgx.Tx, username, cardNumber string) error {
 	const query = `
         DELETE FROM auth.cards
         WHERE user_id = (

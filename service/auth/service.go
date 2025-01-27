@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gleb-korostelev/GophKeeper/database"
 	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gleb-korostelev/GophKeeper/pkg/claims"
 	"github.com/gleb-korostelev/GophKeeper/pkg/otp"
@@ -34,6 +35,7 @@ const (
 type service struct {
 	privateKey ed25519.PrivateKey
 	db         db.IAdapter
+	repo       database.Repository
 }
 
 // NewService creates a new instance of the authentication service.
@@ -45,7 +47,7 @@ func NewService(db db.IAdapter, privateKey ed25519.PrivateKey) *service {
 func (s *service) CreateProfile(ctx context.Context, profile models.Profile) (challenge string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
-		acc, err = getAccountByUserName(ctx, tx, profile.Username)
+		acc, err = s.repo.GetAccountByUserName(ctx, tx, profile.Username)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				err = acc.GenerateSecret(profile.Password)
@@ -53,7 +55,7 @@ func (s *service) CreateProfile(ctx context.Context, profile models.Profile) (ch
 					return err
 				}
 
-				err = insertAccount(ctx, tx, profile.Username, acc.Secret)
+				err = s.repo.InsertAccount(ctx, tx, profile.Username, acc.Secret)
 				if err != nil {
 					return fmt.Errorf("error in insertAccount: %w", err)
 				}
@@ -76,7 +78,7 @@ func (s *service) CreateProfile(ctx context.Context, profile models.Profile) (ch
 func (s *service) GetChallenge(ctx context.Context, profile models.Profile) (challenge string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
-		acc, err = getAccountByUserName(ctx, tx, profile.Username)
+		acc, err = s.repo.GetAccountByUserName(ctx, tx, profile.Username)
 		if err != nil {
 			return fmt.Errorf("error in getAccountByUserName: %w", err)
 		}
@@ -95,7 +97,7 @@ func (s *service) GetChallenge(ctx context.Context, profile models.Profile) (cha
 func (s *service) SignIn(ctx context.Context, profile models.Profile, challenge string) (token, refresh string, err error) {
 	var acc models.Account
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
-		acc, err = getAccountByUserName(ctx, tx, profile.Username)
+		acc, err = s.repo.GetAccountByUserName(ctx, tx, profile.Username)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return svc.ErrAccountNotFound
@@ -120,7 +122,7 @@ func (s *service) SignIn(ctx context.Context, profile models.Profile, challenge 
 	if acc.AccountType == models.AccountUnauthorizedUser {
 		acc.AccountType = models.AccountAuthorizedUser
 		err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
-			err = updateAccountType(ctx, tx, acc.Username, acc.AccountType)
+			err = s.repo.UpdateAccountType(ctx, tx, acc.Username, acc.AccountType)
 			if err != nil {
 				return fmt.Errorf("error in updateAccountType: %w", err)
 			}
@@ -149,7 +151,7 @@ func (s *service) SignIn(ctx context.Context, profile models.Profile, challenge 
 // GetAccountByUserName retrieves an account by username.
 func (s *service) GetAccountByUserName(ctx context.Context, username string) (acc models.Account, err error) {
 	err = s.db.InTx(ctx, func(ctx context.Context, tx pgx.Tx) error {
-		acc, err = getAccountByUserName(ctx, tx, username)
+		acc, err = s.repo.GetAccountByUserName(ctx, tx, username)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return svc.ErrAccountNotFound
