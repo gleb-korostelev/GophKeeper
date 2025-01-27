@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gleb-korostelev/GophKeeper/database"
 	"github.com/gleb-korostelev/GophKeeper/models"
 	"github.com/gleb-korostelev/GophKeeper/pkg/claims"
 	"github.com/gleb-korostelev/GophKeeper/pkg/otp"
+	"github.com/gleb-korostelev/GophKeeper/repository"
 	svc "github.com/gleb-korostelev/GophKeeper/service"
 	"github.com/gleb-korostelev/GophKeeper/tools/db"
 	"github.com/google/uuid"
@@ -35,7 +35,7 @@ const (
 type service struct {
 	privateKey ed25519.PrivateKey
 	db         db.IAdapter
-	repo       database.Repository
+	repo       repository.Repository
 }
 
 // NewService creates a new instance of the authentication service.

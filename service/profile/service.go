@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gleb-korostelev/GophKeeper/database"
 	"github.com/gleb-korostelev/GophKeeper/models/profile"
+	"github.com/gleb-korostelev/GophKeeper/repository"
 	"github.com/gleb-korostelev/GophKeeper/tools/db"
 	"github.com/jackc/pgx/v5"
 )
@@ -17,7 +17,7 @@ import (
 // - db: The database adapter for executing transactional operations.
 type service struct {
 	db   db.IAdapter
-	repo database.Repository
+	repo repository.Repository
 }
 
 // NewService creates a new instance of the profile service.
