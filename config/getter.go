@@ -8,8 +8,10 @@ import (
 	"github.com/gleb-korostelev/GophKeeper/tools/logger"
 )
 
+// tempErr is a format string used for error messages when a configuration parameter is invalid.
 const tempErr = "Config parameter %s is incorrect: %s"
 
+// GetConfigString retrieves the value of an environment variable as a string.
 func GetConfigString(key configKey) string {
 	value := os.Getenv(string(key))
 	if value == "" {
@@ -18,6 +20,7 @@ func GetConfigString(key configKey) string {
 	return value
 }
 
+// GetConfigBool retrieves the value of an environment variable as a boolean.
 func GetConfigBool(key configKey) bool {
 	valueStr := os.Getenv(string(key))
 	value, err := strconv.ParseBool(valueStr)
@@ -27,6 +30,7 @@ func GetConfigBool(key configKey) bool {
 	return value
 }
 
+// GetConfigInt retrieves the value of an environment variable as an integer.
 func GetConfigInt(key configKey) int {
 	valueStr := os.Getenv(string(key))
 	value, err := strconv.Atoi(valueStr)
@@ -36,6 +40,7 @@ func GetConfigInt(key configKey) int {
 	return value
 }
 
+// GetConfigDuration retrieves the value of an environment variable as a time.Duration.
 func GetConfigDuration(key configKey) time.Duration {
 	valueStr := os.Getenv(string(key))
 	value, err := time.ParseDuration(valueStr)

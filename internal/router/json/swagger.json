@@ -1,0 +1,318 @@
+{
+		   "openapi":"3.0.3",
+		   "info":{
+			  "title": "gophkeeper",
+			  "version":"version not set"
+		   },
+           "servers": [
+				{
+				  "url": "localhost"
+				}
+			  ],
+		   "paths":{
+			 
+		"/api/v1/cards":{
+			
+		 "get":{
+				"summary": "Get card detailes",
+				"parameters": [
+		{
+			"name": "Authorization",
+			"in": "header",
+			"required": true,
+			"description": "Required 'Bearer ' prefix",
+			"schema": {
+				"type": "string"
+			}
+			
+		}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{"cards":{"items":{"properties":{"card_holder":{"type":"string"},"card_number":{"type":"string"},"cvv":{"type":"string"},"expiration_date":{"properties":{"ext":{"type":"integer"},"loc":{"properties":{"cacheEnd":{"type":"integer"},"cacheStart":{"type":"integer"},"cacheZone":{"properties":{"isDST":{"type":"boolean"},"name":{"type":"string"},"offset":{"type":"integer"}},"type":"object"},"extend":{"type":"string"},"name":{"type":"string"},"tx":{"items":{"properties":{"index":{"type":"integer"},"isstd":{"type":"boolean"},"isutc":{"type":"boolean"},"when":{"type":"integer"}},"type":"object"},"type":"array"},"zone":{"items":{"properties":{"isDST":{"type":"boolean"},"name":{"type":"string"},"offset":{"type":"integer"}},"type":"object"},"type":"array"}},"type":"object"},"wall":{"type":"integer"}},"type":"object"},"metadata":{"type":"string"}},"type":"object"},"type":"array"},"username":{"type":"string"}},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	,
+		 "delete":{
+				"summary": "Delete specific card",
+				"parameters": [{
+											"name": "body",
+											"in": "path",
+											"required": true,
+											"schema": {
+												"type": "object",
+												"properties": {
+		"card_number": {
+			"type": "string"
+		}}}},
+		{
+			"name": "Authorization",
+			"in": "header",
+			"required": true,
+			"description": "Required 'Bearer ' prefix",
+			"schema": {
+				"type": "string"
+			}
+			
+		}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	
+      	},
+		"/api/v1/challenge":{
+			
+		 "post":{
+				"summary": "Get challenge for wallet",
+				"parameters": [{
+											"name": "body",
+											"in": "path",
+											"required": true,
+											"schema": {
+												"type": "object",
+												"properties": {
+		"username": {
+			"type": "string"
+		}}}}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{"challenge":{"type":"string"}},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	
+      	},
+		"/api/v1/login":{
+			
+		 "post":{
+				"summary": "Login to accounts system",
+				"parameters": [{
+											"name": "body",
+											"in": "path",
+											"required": true,
+											"schema": {
+												"type": "object",
+												"properties": {
+		"username": {
+			"type": "string"
+		},
+		"password": {
+			"type": "string"
+		},
+		"challenge": {
+			"type": "string"
+		}}}}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{"refresh_token":{"type":"string"},"token":{"type":"string"}},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	
+      	},
+		"/api/v1/register":{
+			
+		 "post":{
+				"summary": "Register system account",
+				"parameters": [{
+											"name": "body",
+											"in": "path",
+											"required": true,
+											"schema": {
+												"type": "object",
+												"properties": {
+		"username": {
+			"type": "string"
+		},
+		"password": {
+			"type": "string"
+		}}}}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{"challenge":{"type":"string"}},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	
+      	},
+		"/api/v1/upload-card-info":{
+			
+		 "post":{
+				"summary": "Uploads or edits new card info",
+				"parameters": [{
+											"name": "body",
+											"in": "path",
+											"required": true,
+											"schema": {
+												"type": "object",
+												"properties": {
+		"card_number": {
+			"type": "string"
+		},
+		"card_holder": {
+			"type": "string"
+		},
+		"expiration_date": {
+			"type": "object"
+		},
+		"cvv": {
+			"type": "string"
+		},
+		"metadata": {
+			"type": "string"
+		}}}},
+		{
+			"name": "Authorization",
+			"in": "header",
+			"required": true,
+			"description": "Required 'Bearer ' prefix",
+			"schema": {
+				"type": "string"
+			}
+			
+		}],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"data":{"properties":{},"type":"object"},"message":{"type":"string"},"success":{"type":"boolean"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "gophkeeper"
+				]
+			 }
+	
+      	},
+		"/healthcheck":{
+			
+		 "get":{
+				"summary": "Healthcheck",
+				"parameters": [],
+				"responses":{
+				   "200":{
+					  "description":"A successful response.",
+						 "content": {
+						  "application/json": {
+							"schema": {"properties":{"status":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   },
+				   "default":{
+					  "description":"An unexpected error response.",
+						"content": {
+						  "application/json": {
+							"schema": {"properties":{"code":{"type":"integer"},"details":{"items":{"properties":{"@type":{"type":"string"}},"type":"object"},"type":"array"},"message":{"type":"string"}},"type":"object"}
+						  }
+						}
+				   }
+				},
+				
+				"tags":[
+				   "Healthcheck"
+				]
+			 }
+	
+      	}
+		   }
+		}

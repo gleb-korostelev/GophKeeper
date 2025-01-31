@@ -1,57 +1,32 @@
+// Package config provides configuration keys for retrieving application settings.
+// These keys are used to fetch environment variables or other configuration values
+// required by the application.
 package config
 
 type configKey string
 
 const (
+	// Port specifies the port on which the HTTP server will run.
 	Port = configKey("PORT")
 
+	// DBDSN specifies the Data Source Name (DSN) for the database connection.
 	DBDSN = configKey("DB_DSN")
 
+	// HttpsHost specifies the hostname for the HTTPS server.
 	HttpsHost = configKey("HTTPS_HOST")
 
+	// IsSwaggerCreated determines whether Swagger documentation should be created and exposed.
 	IsSwaggerCreated = configKey("IS_SWAGGER_CREATED")
+
+	// JwtKey specifies the private key for signing JWT tokens.
+	JwtKey = configKey("JWT_KEY")
+
+	// MaxOpenConns specifies the maximum number of open database connections.
+	MaxOpenConns = configKey("MAX_OPEN_CONNS")
+
+	// MaxIdleConns specifies the maximum number of idle database connections.
+	MaxIdleConns = configKey("MAX_IDLE_CONNS")
+
+	// ConnMaxLifetime specifies the maximum lifetime of a database connection.
+	ConnMaxLifetime = configKey("CONN_MAX_LIFETIME")
 )
-
-// const (
-// 	MaxRoutine           = 20
-// 	DefaultServerAddress = "localhost:8080"
-// 	TokenExpiration      = 24 * time.Hour
-// 	JwtKeySecret         = "very-very-secret-key"
-// )
-
-// type ServerConfigData struct {
-// 	ServerAddr string
-// 	DBDSN      string
-// }
-
-// func ConfigInit() error {
-// 	flag.StringVar(&ServerConfig.ServerAddr, "a", DefaultServerAddress, "address to run HTTP server on")
-// 	flag.StringVar(&ServerConfig.DBDSN, "d", "", "base file path to save URLs")
-
-// 	flag.Parse()
-
-// 	if serverAddr := os.Getenv("RUN_ADDRESS"); serverAddr != "" {
-// 		ServerConfig.ServerAddr = serverAddr
-// 	}
-// 	if dbdsn := os.Getenv("DATABASE_URI"); dbdsn != "" {
-// 		ServerConfig.DBDSN = dbdsn
-// 	}
-
-// 	ServerConfig.DBDSN = "postgres://postgres:7513@localhost:5432/postgres"
-// 	ServerConfig.ServerAddr = DefaultServerAddress
-
-// 	return checkConfig()
-// }
-
-// func checkConfig() error {
-// 	switch {
-// 	case ServerConfig.ServerAddr == "":
-// 		return apperror.ErrNoServerAddress
-// 	case ServerConfig.DBDSN == "":
-// 		return apperror.ErrNoDatabaseDestination
-// 	default:
-// 		return nil
-// 	}
-// }
-
-// var ServerConfig ServerConfigData
